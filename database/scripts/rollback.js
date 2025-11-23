@@ -19,7 +19,6 @@ const { Pool } = pg;
 const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
-    console.error('ERROR: DATABASE_URL not found in .env');
     process.exit(1);
 }
 
@@ -49,21 +48,12 @@ async function rollbackLastMigration() {
         const lastMigration = await getLastMigration();
 
         if (!lastMigration) {
-            console.log('No migrations to rollback.');
             await pool.end();
             return;
         }
 
-        console.log(`Rolling back: ${lastMigration}`);
-        console.log('\n⚠️  Warning: This script only removes the migration record.');
-        console.log('⚠️  You need to manually drop/alter tables if needed.\n');
-
         await removeMigration(lastMigration);
-
-        console.log(`✓ Removed migration record: ${lastMigration}`);
-        console.log('\n⚠️  Remember to manually handle table/column changes if needed.');
     } catch (error) {
-        console.error('\n✗ Rollback failed:', error);
         process.exit(1);
     } finally {
         await pool.end();

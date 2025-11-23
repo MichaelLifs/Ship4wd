@@ -1,5 +1,4 @@
 function UserDashboard() {
-  // Mock data - will be replaced with API calls later
   const stats = {
     totalExpenses: 26830,
     monthlyExpenses: 6800,

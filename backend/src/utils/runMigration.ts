@@ -13,7 +13,6 @@ const { Pool } = pg;
 const connectionString: string | undefined = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("ERROR: DATABASE_URL not found in .env");
   process.exit(1);
 }
 
@@ -68,7 +67,6 @@ function getMigrationFiles(): MigrationFile[] {
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error("Error reading migrations directory:", errorMessage);
     return [];
   }
 }
@@ -82,12 +80,10 @@ async function executeMigration(migrationFile: MigrationFile): Promise<void> {
     await client.query(migrationSQL);
     await markMigrationAsExecuted(migrationFile.name);
     await client.query("COMMIT");
-    console.log(`✓ Executed: ${migrationFile.name}`);
   } catch (error) {
     await client.query("ROLLBACK");
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(`✗ Failed: ${migrationFile.name}`, errorMessage);
     throw error;
   } finally {
     client.release();
@@ -96,8 +92,6 @@ async function executeMigration(migrationFile: MigrationFile): Promise<void> {
 
 async function runMigrations(): Promise<void> {
   try {
-    console.log("Starting migrations...\n");
-
     await ensureMigrationsTable();
     const executedMigrations = await getExecutedMigrations();
     const allMigrations = getMigrationFiles();
@@ -107,19 +101,13 @@ async function runMigrations(): Promise<void> {
     );
 
     if (pendingMigrations.length === 0) {
-      console.log("No pending migrations.");
       return;
     }
-
-    console.log(`Found ${pendingMigrations.length} pending migration(s):\n`);
 
     for (const migration of pendingMigrations) {
       await executeMigration(migration);
     }
-
-    console.log("\n✓ All migrations completed successfully!");
   } catch (error) {
-    console.error("\n✗ Migration failed:", error);
     process.exit(1);
   } finally {
     await pool.end();

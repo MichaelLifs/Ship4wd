@@ -1,5 +1,4 @@
 function AdminDashboard() {
-  // Mock data - will be replaced with API calls later
   const stats = {
     totalCustomers: 1247,
     totalUsers: 3421,

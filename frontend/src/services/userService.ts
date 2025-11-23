@@ -54,7 +54,6 @@ export const userService = {
 
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching users:", error);
       throw error;
     }
   },
@@ -80,7 +79,6 @@ export const userService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error fetching user:", error);
       throw error;
     }
   },
@@ -113,7 +111,6 @@ export const userService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error creating user:", error);
       throw error;
     }
   },
@@ -151,7 +148,6 @@ export const userService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error updating user:", error);
       throw error;
     }
   },
@@ -177,7 +173,6 @@ export const userService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error deleting user:", error);
       throw error;
     }
   },
@@ -199,7 +194,6 @@ export const userService = {
 
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching users by role:", error);
       throw error;
     }
   },

@@ -24,25 +24,19 @@ function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content Area */}
       <div className="lg:ml-64 pt-16">
-        {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        {/* Page Content */}
         <main className="p-3 lg:p-4">
           <div className="max-w-4xl mx-auto">
-            {/* Account Overview */}
             <div className="mb-3">
               <h1 className="text-xl font-bold text-gray-900 mb-1">Account</h1>
               <p className="text-xs text-gray-600">Real-time information and activities of your account.</p>
             </div>
 
             <div className="space-y-3">
-              {/* Profile Picture Section */}
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3">Profile picture</h2>
                 <div className="flex items-start gap-4">
@@ -52,7 +46,6 @@ function SettingsPage() {
                 </div>
               </div>
 
-              {/* Full Name Section */}
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <h2 className="text-sm font-semibold text-gray-900 mb-3">Full name</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -77,7 +70,6 @@ function SettingsPage() {
                 </div>
               </div>
 
-              {/* Contact Email Section */}
               <div className="bg-white rounded-lg shadow-sm p-4">
                 <h2 className="text-sm font-semibold text-gray-900 mb-1">Contact email</h2>
                 <p className="text-xs text-gray-600 mb-3">Manage your account's email address for the invoices.</p>
@@ -104,7 +96,6 @@ function SettingsPage() {
                 </div>
               </div>
 
-              {/* Save Button for Account Section */}
               <div className="flex justify-end">
                 <button className="btn-lg btn-primary">
                   Save Changes
@@ -112,7 +103,6 @@ function SettingsPage() {
               </div>
             </div>
 
-            {/* Password Section */}
             <div className="mt-4">
               <div className="mb-3">
                 <h1 className="text-xl font-bold text-gray-900 mb-1">Password</h1>
@@ -154,7 +144,6 @@ function SettingsPage() {
               </div>
             </div>
 
-            {/* Integrated Account Section */}
             <div className="mt-4">
               <div className="mb-3">
                 <h1 className="text-xl font-bold text-gray-900 mb-1">Integrated account</h1>
@@ -162,7 +151,6 @@ function SettingsPage() {
               </div>
 
               <div className="bg-white rounded-lg shadow-sm p-4 space-y-3">
-                {/* Google */}
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-gray-200">
@@ -183,7 +171,6 @@ function SettingsPage() {
                   </button>
                 </div>
 
-                {/* Apple */}
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center">
@@ -201,7 +188,6 @@ function SettingsPage() {
                   </button>
                 </div>
 
-                {/* Facebook */}
                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -219,7 +205,6 @@ function SettingsPage() {
               </div>
             </div>
 
-            {/* Account Security Section */}
             <div className="mt-4">
               <h1 className="text-xl font-bold text-gray-900 mb-1">Account security</h1>
               <p className="text-xs text-gray-600 mb-3">Manage your account security.</p>

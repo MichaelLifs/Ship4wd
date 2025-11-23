@@ -32,6 +32,4 @@ app.use(express.json());
 app.use("/health", healthRoutes);
 app.use("/api", apiRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => {});

@@ -13,7 +13,6 @@ const { Pool } = pg;
 const connectionString: string | undefined = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("ERROR: DATABASE_URL not found in .env");
   process.exit(1);
 }
 
@@ -41,7 +40,6 @@ function getSeederFiles(): SeederFile[] {
       path: join(seedersDir, file),
     }));
   } catch (error) {
-    console.log("No seeders directory found or no seeder files.");
     return [];
   }
 }
@@ -54,12 +52,10 @@ async function executeSeeder(seederFile: SeederFile): Promise<void> {
     await client.query("BEGIN");
     await client.query(seederSQL);
     await client.query("COMMIT");
-    console.log(`✓ Executed: ${seederFile.name}`);
   } catch (error) {
     await client.query("ROLLBACK");
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error";
-    console.error(`✗ Failed: ${seederFile.name}`, errorMessage);
     throw error;
   } finally {
     client.release();
@@ -68,24 +64,16 @@ async function executeSeeder(seederFile: SeederFile): Promise<void> {
 
 async function runSeeders(): Promise<void> {
   try {
-    console.log("Starting seeders...\n");
-
     const seeders = getSeederFiles();
 
     if (seeders.length === 0) {
-      console.log("No seeders found.");
       return;
     }
-
-    console.log(`Found ${seeders.length} seeder(s):\n`);
 
     for (const seeder of seeders) {
       await executeSeeder(seeder);
     }
-
-    console.log("\n✓ All seeders completed successfully!");
   } catch (error) {
-    console.error("\n✗ Seeding failed:", error);
     process.exit(1);
   } finally {
     await pool.end();
@@ -103,9 +91,7 @@ async function runSpecificSeeder(seederName: string): Promise<void> {
     };
 
     await executeSeeder(seederFile);
-    console.log("\n✓ Seeder completed successfully!");
   } catch (error) {
-    console.error("\n✗ Seeder failed:", error);
     process.exit(1);
   } finally {
     await pool.end();

@@ -34,7 +34,6 @@ export const updateUserSchema = z
   })
   .refine(
     (data) => {
-      // At least one field must be provided and not empty
       const hasName = data.name && data.name.trim() !== "";
       const hasLastName = data.last_name && data.last_name.trim() !== "";
       const hasEmail = data.email && data.email.trim() !== "";

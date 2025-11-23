@@ -12,7 +12,6 @@ const { Pool } = pg;
 const connectionString: string | undefined = process.env.DATABASE_URL;
 
 if (!connectionString) {
-  console.error("ERROR: DATABASE_URL not found in .env");
   process.exit(1);
 }
 

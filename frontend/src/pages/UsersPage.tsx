@@ -12,10 +12,8 @@ import { userService } from '../services/userService'
 import { createUserSchema, type CreateUserFormData } from '../validator/createUserSchema'
 import { updateUserSchema, type UpdateUserFormData } from '../validator/updateUserSchema'
 
-// Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule])
 
-// Types
 interface User {
   id: number;
   name: string;
@@ -46,7 +44,6 @@ interface DialogProps {
   user?: User | null;
 }
 
-// Action Menu Component  
 const ActionMenu = (params: ActionMenuParams) => {
   const data = params.data || params.node?.data
   const onEdit = params.onEdit || params.cellRendererParams?.onEdit
@@ -160,7 +157,6 @@ const ActionMenu = (params: ActionMenuParams) => {
   )
 }
 
-// Edit User Dialog Component
 const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
   const [showPassword, setShowPassword] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -251,7 +247,6 @@ const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* First Name */}
             <div>
               <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 mb-1">
                 First Name
@@ -314,7 +309,6 @@ const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
               )}
             </div>
 
-            {/* Password (Optional) */}
             <div>
               <label htmlFor="edit-password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password <span className="text-gray-500 text-xs">(Optional - leave empty to keep current)</span>
@@ -398,14 +392,12 @@ const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
               )}
             </div>
 
-            {/* Submit Error */}
             {submitError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {submitError}
               </div>
             )}
 
-            {/* Buttons */}
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
@@ -435,7 +427,6 @@ const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
   )
 }
 
-// Delete User Dialog Component
 const DeleteUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState('')
@@ -537,7 +528,6 @@ const DeleteUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => 
   )
 }
 
-// Create User Dialog Component
 const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'user'>) => {
   const [showPassword, setShowPassword] = useState(false)
   const [submitError, setSubmitError] = useState('')
@@ -615,7 +605,6 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* First Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 First Name
@@ -636,7 +625,6 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
               )}
             </div>
 
-            {/* Last Name */}
             <div>
               <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name
@@ -657,7 +645,6 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
               )}
             </div>
 
-            {/* Email */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email
@@ -678,7 +665,6 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
               )}
             </div>
 
-            {/* Password */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                 Password
@@ -717,7 +703,6 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
               )}
             </div>
 
-            {/* Role */}
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                 Role
@@ -762,14 +747,12 @@ const CreateUserDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'use
               )}
             </div>
 
-            {/* Submit Error */}
             {submitError && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
                 {submitError}
               </div>
             )}
 
-            {/* Buttons */}
             <div className="flex gap-3 pt-4">
               <button
                 type="button"
@@ -909,15 +892,11 @@ function UsersPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content Area */}
       <div className="lg:ml-64 pt-16">
-        {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        {/* Page Content */}
         <main className="p-4 lg:p-6">
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -980,18 +959,15 @@ function UsersPage() {
           </div>
         </main>
 
-        {/* Footer */}
         <Footer />
       </div>
 
-      {/* Create User Dialog */}
       <CreateUserDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}
         onSuccess={fetchUsers}
       />
 
-      {/* Edit User Dialog */}
       <EditUserDialog
         isOpen={isEditDialogOpen}
         onClose={() => {
@@ -1002,7 +978,6 @@ function UsersPage() {
         user={selectedUser}
       />
 
-      {/* Delete User Dialog */}
       <DeleteUserDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => {

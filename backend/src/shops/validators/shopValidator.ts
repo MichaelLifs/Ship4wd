@@ -71,7 +71,6 @@ export const validate = (
   return (req: Request, res: Response, next: NextFunction): void => {
     const data = req[property] as any;
 
-    // Convert empty array to null for user_id before validation
     if (
       data &&
       data.user_id &&

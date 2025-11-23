@@ -11,12 +11,14 @@ interface Shop {
   deleted: boolean;
   created_at: string;
   updated_at: string;
-  users?: {
-    id: number;
-    name: string;
-    last_name: string;
-    email: string;
-  }[] | null;
+  users?:
+    | {
+        id: number;
+        name: string;
+        last_name: string;
+        email: string;
+      }[]
+    | null;
 }
 
 interface CreateShopData {
@@ -60,7 +62,6 @@ export const shopService = {
 
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching shops:", error);
       throw error;
     }
   },
@@ -86,7 +87,6 @@ export const shopService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error fetching shop:", error);
       throw error;
     }
   },
@@ -119,7 +119,6 @@ export const shopService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error creating shop:", error);
       throw error;
     }
   },
@@ -154,7 +153,6 @@ export const shopService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error updating shop:", error);
       throw error;
     }
   },
@@ -180,7 +178,6 @@ export const shopService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error deleting shop:", error);
       throw error;
     }
   },
@@ -202,7 +199,6 @@ export const shopService = {
 
       return data.data || [];
     } catch (error) {
-      console.error("Error fetching shop managers:", error);
       throw error;
     }
   },
@@ -235,19 +231,21 @@ export const shopService = {
 
       return data.data;
     } catch (error) {
-      console.error("Error adding manager:", error);
       throw error;
     }
   },
 
   async removeShopManager(shopId: number, userId: number): Promise<void> {
     try {
-      const response = await fetch(`${API_URL}/shops/${shopId}/managers/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await fetch(
+        `${API_URL}/shops/${shopId}/managers/${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
       const data: ApiResponse<void> = await response.json();
 
@@ -255,7 +253,20 @@ export const shopService = {
         throw new Error(data.message || "Failed to remove manager");
       }
     } catch (error) {
-      console.error("Error removing manager:", error);
+      throw error;
+    }
+  },
+
+  async getShopsByManagerId(userId: number): Promise<Shop[]> {
+    try {
+      const allShops = await this.getAllShops();
+      return allShops.filter(
+        (shop) =>
+          shop.user_id &&
+          Array.isArray(shop.user_id) &&
+          shop.user_id.includes(userId)
+      );
+    } catch (error) {
       throw error;
     }
   },
@@ -274,4 +285,3 @@ interface ShopManager {
     role: string | null;
   };
 }
-

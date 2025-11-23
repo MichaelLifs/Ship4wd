@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
+import { AgGridReact } from 'ag-grid-react'
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'react-toastify'
@@ -10,6 +12,9 @@ import { shopService } from '../services/shopService'
 import { userService } from '../services/userService'
 import { createShopSchema, type CreateShopFormData } from '../validator/createShopSchema'
 import { updateShopSchema, type UpdateShopFormData } from '../validator/updateShopSchema'
+
+ModuleRegistry.registerModules([AllCommunityModule])
+
 interface Shop {
   id: number;
   shop_name: string;
@@ -33,6 +38,268 @@ interface DialogProps {
   onClose: () => void;
   onSuccess: () => void;
   shop?: Shop | null;
+}
+
+interface ActionMenuParams {
+  data?: Shop;
+  node?: { data?: Shop };
+  onEdit?: (shop: Shop) => void;
+  onDelete?: (shop: Shop) => void;
+  onManageManagers?: (shop: Shop) => void;
+  cellRendererParams?: {
+    onEdit?: (shop: Shop) => void;
+    onDelete?: (shop: Shop) => void;
+    onManageManagers?: (shop: Shop) => void;
+  };
+}
+
+const DescriptionCellRenderer = (params: any) => {
+  const description = params.value || ''
+  const maxLength = 50
+  const [showTooltip, setShowTooltip] = useState(false)
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
+  const [arrowLeft, setArrowLeft] = useState(0)
+  const cellRef = useRef<HTMLSpanElement>(null)
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  if (!description || description === '-') {
+    return <span>-</span>
+  }
+  
+  const truncated = description.length > maxLength 
+    ? description.substring(0, maxLength) + '...' 
+    : description
+  
+  const shouldShowTooltip = description.length > maxLength
+  
+  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+    if (!shouldShowTooltip || !cellRef.current) return
+    
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+    }
+    
+    tooltipTimeoutRef.current = setTimeout(() => {
+      if (!cellRef.current) return
+      
+      const rect = cellRef.current.getBoundingClientRect()
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop
+      
+      const tooltipWidth = Math.min(384, window.innerWidth - 40)
+      let left = rect.left + scrollX
+      
+      const margin = 20
+      if (left + tooltipWidth > window.innerWidth - margin + scrollX) {
+        left = window.innerWidth - tooltipWidth - margin + scrollX
+      }
+      if (left < margin + scrollX) {
+        left = margin + scrollX
+      }
+      
+      const cellCenter = rect.left + scrollX + (rect.width / 2)
+      const arrowPosition = cellCenter - left
+      
+      setTooltipPosition({
+        top: rect.top + scrollY,
+        left: left
+      })
+      setArrowLeft(Math.max(16, Math.min(arrowPosition, tooltipWidth - 16)))
+      setShowTooltip(true)
+    }, 200)
+  }
+  
+  const handleMouseLeave = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+      tooltipTimeoutRef.current = null
+    }
+    setShowTooltip(false)
+  }
+  
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current)
+      }
+    }
+  }, [])
+  
+  return (
+    <>
+      <span 
+        ref={cellRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`cursor-default ${shouldShowTooltip ? 'hover:text-gray-700 transition-colors' : ''}`}
+      >
+        {truncated}
+      </span>
+      {showTooltip && shouldShowTooltip && createPortal(
+        <div
+          className="fixed bg-gray-900 text-gray-100 text-sm px-4 py-3 rounded-lg shadow-2xl max-w-md pointer-events-none"
+          style={{
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+            transform: 'translateY(-100%) translateY(-8px)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            zIndex: 999999,
+            opacity: 1,
+            transition: 'opacity 0.2s ease-out'
+          }}
+        >
+          <div className="whitespace-pre-wrap break-words leading-relaxed">{description}</div>
+          <div 
+            className="absolute top-full w-0 h-0 border-l-[8px] border-r-[8px] border-t-[8px] border-transparent border-t-gray-900"
+            style={{ 
+              left: `${arrowLeft}px`,
+              transform: 'translateX(-50%)',
+              marginTop: '-1px', 
+              filter: 'drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2))' 
+            }}
+          />
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
+const ActionMenu = (params: ActionMenuParams) => {
+  const data = params.data || params.node?.data
+  const onEdit = params.onEdit || params.cellRendererParams?.onEdit
+  const onDelete = params.onDelete || params.cellRendererParams?.onDelete
+  const onManageManagers = params.onManageManagers || params.cellRendererParams?.onManageManagers
+  const [isOpen, setIsOpen] = useState(false)
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number }>({ top: 0, left: 0 })
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (
+        menuRef.current && !menuRef.current.contains(target) &&
+        buttonRef.current && !buttonRef.current.contains(target)
+      ) {
+        setIsOpen(false);
+      }
+    }
+
+    if (isOpen) {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect()
+        setMenuPosition({
+          top: rect.bottom + window.scrollY + 4,
+          left: rect.right + window.scrollX - 160
+        })
+      }
+      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener('click', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isOpen])
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setIsOpen(prev => !prev)
+  }
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setIsOpen(false)
+    if (onEdit && data) {
+      onEdit(data)
+    }
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setIsOpen(false)
+    if (onDelete && data) {
+      onDelete(data)
+    }
+  }
+
+  const handleManageManagersClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setIsOpen(false)
+    if (onManageManagers && data) {
+      onManageManagers(data)
+    }
+  }
+
+  const menuContent = isOpen ? (
+    <div 
+      ref={menuRef}
+      className="fixed w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-1"
+      style={{ 
+        zIndex: 99999,
+        top: `${menuPosition.top}px`,
+        left: `${menuPosition.left}px`
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        onClick={handleEditClick}
+        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors text-left"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edit
+      </button>
+      <button
+        type="button"
+        onClick={handleManageManagersClick}
+        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 transition-colors text-left"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+        Manage Managers
+      </button>
+      <button
+        type="button"
+        onClick={handleDeleteClick}
+        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+        Delete
+      </button>
+    </div>
+  ) : null
+
+  return (
+    <>
+      <div className="relative h-full flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+        <button
+          ref={buttonRef}
+          type="button"
+          onClick={handleButtonClick}
+          className="p-1 hover:bg-gray-100 rounded transition-colors focus:outline-none"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}
+        >
+          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          </svg>
+        </button>
+      </div>
+      {isOpen && createPortal(menuContent, document.body)}
+    </>
+  )
 }
 
 const EditShopDialog = ({ isOpen, onClose, onSuccess, shop }: DialogProps) => {
@@ -82,11 +349,9 @@ const EditShopDialog = ({ isOpen, onClose, onSuccess, shop }: DialogProps) => {
     }
   }, [isOpen, shop, reset])
 
-
   const handleClose = () => {
     onClose()
   }
-
 
   const onSubmit = async (data: UpdateShopFormData) => {
     if (!shop) return
@@ -614,151 +879,6 @@ const ManageManagersDialog = ({ isOpen, onClose, onSuccess, shop: initialShop }:
   )
 }
 
-const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: () => void; shop: Shop | null }) => {
-  const [date, setDate] = useState('')
-  const [amount, setAmount] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (isOpen) {
-      const today = new Date().toISOString().split('T')[0]
-      setDate(today)
-      setAmount('')
-      setError('')
-    }
-  }, [isOpen])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!date) {
-      setError('Please select a date')
-      return
-    }
-    
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount')
-      return
-    }
-
-    try {
-      setIsSubmitting(true)
-      setError('')
-      
-      toast.success(`Purchase created successfully! Date: ${date}, Amount: $${amount}`)
-      onClose()
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create purchase'
-      setError(errorMessage)
-      toast.error(errorMessage)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  if (!isOpen || !shop) return null
-
-  return createPortal(
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">New Purchase</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="mb-4">
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <p className="text-sm text-gray-600 mb-1">Shop:</p>
-              <p className="text-lg font-semibold text-gray-900">{shop.shop_name}</p>
-              {shop.description && (
-                <p className="text-sm text-gray-500 mt-1">{shop.description}</p>
-              )}
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="purchase-date" className="block text-sm font-medium text-gray-700 mb-1">
-                Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="purchase-date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                required
-              />
-            </div>
-
-            <div>
-              <label htmlFor="purchase-amount" className="block text-sm font-medium text-gray-700 mb-1">
-                Amount ($) <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="purchase-amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="0.00"
-                required
-              />
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`flex-1 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  isSubmitting
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
-              >
-                {isSubmitting ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>,
-    document.body
-  )
-}
-
 const CreateShopUserDialog = ({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) => {
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null)
   const [allShops, setAllShops] = useState<Shop[]>([])
@@ -992,11 +1112,9 @@ const CreateShopDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'sho
     }
   }, [isOpen, reset])
 
-
   const handleClose = () => {
     onClose()
   }
-
 
   const onSubmit = async (data: CreateShopFormData) => {
     try {
@@ -1207,16 +1325,31 @@ const CreateShopDialog = ({ isOpen, onClose, onSuccess }: Omit<DialogProps, 'sho
   )
 }
 
-function ShopsPage() {
+function ShopsManagementPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [rowData, setRowData] = useState<Shop[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false)
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isCreateShopUserDialogOpen, setIsCreateShopUserDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isManageManagersDialogOpen, setIsManageManagersDialogOpen] = useState(false)
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null)
+  const gridRef = useRef<AgGridReact>(null)
 
-  const handlePurchase = (shop: Shop) => {
+  const handleEdit = (shop: Shop) => {
     setSelectedShop(shop)
-    setIsPurchaseDialogOpen(true)
+    setIsEditDialogOpen(true)
+  }
+
+  const handleDelete = (shop: Shop) => {
+    setSelectedShop(shop)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleManageManagers = (shop: Shop) => {
+    setSelectedShop(shop)
+    setIsManageManagersDialogOpen(true)
   }
 
   useEffect(() => {
@@ -1235,6 +1368,90 @@ function ShopsPage() {
     }
   }
 
+  const columnDefs = useMemo(() => [
+    { 
+      field: 'id', 
+      headerName: 'ID', 
+      width: 100, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' }
+    },
+    { 
+      field: 'shop_name', 
+      headerName: 'Shop Name', 
+      width: 250, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' }
+    },
+    { 
+      field: 'description', 
+      headerName: 'Description', 
+      width: 300, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' },
+      cellRenderer: DescriptionCellRenderer
+    },
+    { 
+      field: 'address', 
+      headerName: 'Address', 
+      width: 250, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' },
+      valueFormatter: (params: any) => params.value || '-'
+    },
+    { 
+      field: 'phone', 
+      headerName: 'Phone', 
+      width: 150, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' },
+      valueFormatter: (params: any) => params.value || '-'
+    },
+    { 
+      field: 'user_id', 
+      headerName: 'Users', 
+      width: 200, 
+      sortable: true, 
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' },
+      valueGetter: (params: any) => {
+        if (!params.data?.users || !Array.isArray(params.data.users) || params.data.users.length === 0) return '-'
+        return params.data.users.map((u: any) => `${u.name} ${u.last_name}`).join(', ')
+      },
+      valueFormatter: (params: any) => params.value || '-'
+    },
+    {
+      headerName: '',
+      field: 'actions',
+      width: 60,
+      pinned: 'right' as const,
+      lockPosition: true,
+      sortable: false,
+      filter: false,
+      suppressHeaderMenuButton: true,
+      cellRenderer: ActionMenu,
+      cellRendererParams: {
+        onEdit: handleEdit,
+        onDelete: handleDelete,
+        onManageManagers: handleManageManagers
+      },
+      cellStyle: { display: 'flex', alignItems: 'center' }
+    }
+  ], [])
+
+  const defaultColDef = useMemo(() => ({
+    resizable: true,
+    sortable: true,
+    filter: true,
+    flex: 1,
+    minWidth: 100
+  }), [])
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -1243,13 +1460,35 @@ function ShopsPage() {
         <Header onMenuClick={() => setSidebarOpen(true)} dateRange={undefined} />
 
         <main className="p-4 lg:p-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Shops</h1>
-            <p className="text-sm text-gray-500 mt-1">Browse and purchase from shops</p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Manage Shops</h1>
+              <p className="text-sm text-gray-500 mt-1">Manage all shops ({rowData.length} total)</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsCreateShopUserDialogOpen(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                Create Shop Manager
+              </button>
+              <button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Shop
+              </button>
+            </div>
           </div>
           
-          {error ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            {error ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="text-red-600 mb-4">{error}</div>
                 <button
@@ -1259,88 +1498,83 @@ function ShopsPage() {
                   Try Again
                 </button>
               </div>
-            </div>
-          ) : rowData.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            ) : rowData.length === 0 ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-gray-500">No shops found</div>
               </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {rowData.map((shop) => (
-                <div
-                  key={shop.id}
-                  onClick={() => handlePurchase(shop)}
-                  className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl hover:border-green-500 transition-all duration-300 transform hover:-translate-y-2"
-                >
-                  <div className="bg-gradient-to-br from-green-50 to-gray-50 px-6 py-5 border-b border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-900 group-hover:text-green-700 transition-colors">
-                      {shop.shop_name}
-                    </h3>
-                  </div>
-                  
-                  <div className="p-6 space-y-4">
-                    {shop.phone && (
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 p-1.5 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">Phone</p>
-                          <p className="text-sm text-gray-900 font-medium break-words">{shop.phone}</p>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {shop.address && (
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 p-1.5 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
-                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-0.5">Address</p>
-                          <p className="text-sm text-gray-900 font-medium break-words">{shop.address}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-green-600 group-hover:text-green-700 transition-colors">
-                        Click to Buy
-                      </span>
-                      <svg className="w-4 h-4 text-green-600 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+            ) : (
+              <div 
+                className="ag-theme-alpine" 
+                style={{ 
+                  height: '700px', 
+                  width: '100%',
+                  minHeight: '500px'
+                }}
+              >
+                <AgGridReact
+                  ref={gridRef}
+                  rowData={rowData}
+                  columnDefs={columnDefs}
+                  defaultColDef={defaultColDef}
+                  theme="legacy"
+                  pagination={true}
+                  paginationPageSize={20}
+                  animateRows={true}
+                  enableCellTextSelection={true}
+                  domLayout="normal"
+                />
+              </div>
+            )}
+          </div>
         </main>
 
         <Footer />
       </div>
 
-      <PurchaseDialog
-        isOpen={isPurchaseDialogOpen}
+      <CreateShopDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={fetchShops}
+      />
+
+      <EditShopDialog
+        isOpen={isEditDialogOpen}
         onClose={() => {
-          setIsPurchaseDialogOpen(false)
+          setIsEditDialogOpen(false)
           setSelectedShop(null)
         }}
+        onSuccess={fetchShops}
         shop={selectedShop}
+      />
+
+      <DeleteShopDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false)
+          setSelectedShop(null)
+        }}
+        onSuccess={fetchShops}
+        shop={selectedShop}
+      />
+
+      <ManageManagersDialog
+        isOpen={isManageManagersDialogOpen}
+        onClose={() => {
+          setIsManageManagersDialogOpen(false)
+          setSelectedShop(null)
+        }}
+        onSuccess={fetchShops}
+        shop={selectedShop}
+      />
+
+      <CreateShopUserDialog
+        isOpen={isCreateShopUserDialogOpen}
+        onClose={() => setIsCreateShopUserDialogOpen(false)}
+        onSuccess={fetchShops}
       />
     </div>
   )
 }
 
-export default ShopsPage
+export default ShopsManagementPage
 

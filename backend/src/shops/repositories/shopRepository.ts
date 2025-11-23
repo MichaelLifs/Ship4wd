@@ -1,10 +1,6 @@
 import pool from "../../db/database.js";
 import { loadQuery } from "../queries/queryLoader.js";
-import {
-  Shop,
-  CreateShopData,
-  UpdateShopData,
-} from "../types/shop.types.js";
+import { Shop, CreateShopData, UpdateShopData } from "../types/shop.types.js";
 import { ShopPublicFields } from "../types/shop.types.js";
 
 class ShopRepository {
@@ -23,9 +19,8 @@ class ShopRepository {
   async create(shopData: CreateShopData): Promise<ShopPublicFields> {
     const { shop_name, user_id, description, address, phone } = shopData;
     const queryText = loadQuery("createShop");
-    // Handle array: if empty array or null, send null; otherwise send the array
-    const userIdValue = (user_id && Array.isArray(user_id) && user_id.length > 0) ? user_id : null;
-    console.log('Creating shop with user_id:', userIdValue, 'Type:', typeof userIdValue, 'IsArray:', Array.isArray(userIdValue));
+    const userIdValue =
+      user_id && Array.isArray(user_id) && user_id.length > 0 ? user_id : null;
     const result = await pool.query<ShopPublicFields>(queryText, [
       shop_name,
       userIdValue,
@@ -50,11 +45,12 @@ class ShopRepository {
     }
     if (updateData.user_id !== undefined) {
       fields.push(`user_id = $${paramIndex++}`);
-      // Handle array: if empty array or null, send null; otherwise send the array
-      const userIdValue = (updateData.user_id && Array.isArray(updateData.user_id) && updateData.user_id.length > 0) 
-        ? updateData.user_id 
-        : null;
-      console.log('Updating shop user_id:', userIdValue, 'Type:', typeof userIdValue, 'IsArray:', Array.isArray(userIdValue));
+      const userIdValue =
+        updateData.user_id &&
+        Array.isArray(updateData.user_id) &&
+        updateData.user_id.length > 0
+          ? updateData.user_id
+          : null;
       values.push(userIdValue);
     }
     if (updateData.description !== undefined) {
@@ -93,4 +89,3 @@ class ShopRepository {
 }
 
 export default new ShopRepository();
-

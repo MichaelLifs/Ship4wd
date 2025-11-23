@@ -61,11 +61,9 @@ class ShopManagerController {
         data: manager,
       });
     } catch (error: unknown) {
-      console.error("Error adding manager:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       
-      // Check for unique constraint violation
       if (error && typeof error === "object" && "code" in error) {
         const dbError = error as { code: string; detail?: string };
         if (dbError.code === "23505") {

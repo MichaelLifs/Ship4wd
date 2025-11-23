@@ -16,7 +16,6 @@ import {
 
 const router = Router();
 
-// Shop routes
 router.get("/", shopController.getAllShops.bind(shopController));
 router.get(
   "/:id",
@@ -40,7 +39,6 @@ router.delete(
   shopController.deleteShop.bind(shopController)
 );
 
-// Shop manager routes
 router.get(
   "/:shopId/managers",
   validateManager(managerShopIdSchema, "params"),

@@ -26,7 +26,6 @@ function LoginPage() {
         navigate('/home')
       }
     } catch (error) {
-      console.error('Login error:', error)
       if (error instanceof Error) {
         setLoginError(error.message || 'Invalid email or password')
       } else {

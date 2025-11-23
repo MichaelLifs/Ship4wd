@@ -31,9 +31,8 @@ class ShopService {
     }
 
     await shopRepository.create(shopData);
-    // Get the created shop with users
     const shops = await shopRepository.findAll();
-    const createdShop = shops.find(s => s.shop_name === shopData.shop_name);
+    const createdShop = shops.find((s) => s.shop_name === shopData.shop_name);
     if (!createdShop) {
       throw new Error("Failed to retrieve created shop");
     }
@@ -47,7 +46,6 @@ class ShopService {
     const allowedUpdateData = extractUpdateableFields(updateData);
 
     await shopRepository.update(id, allowedUpdateData);
-    // Get the updated shop with users
     const shop = await shopRepository.findById(id);
     return formatShop(shop || null);
   }
@@ -59,4 +57,3 @@ class ShopService {
 }
 
 export default new ShopService();
-

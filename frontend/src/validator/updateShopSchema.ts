@@ -11,10 +11,7 @@ export const updateShopSchema = z
       .array(z.number().int().positive("User ID must be a positive number"))
       .optional()
       .nullable(),
-    description: z
-      .string()
-      .optional()
-      .nullable(),
+    description: z.string().optional().nullable(),
     address: z
       .string()
       .max(500, "Address must not exceed 500 characters")
@@ -28,14 +25,15 @@ export const updateShopSchema = z
   })
   .refine(
     (data) => {
-      // At least one field must be provided and not empty
       const hasShopName = data.shop_name && data.shop_name.trim() !== "";
       const hasUserId = data.user_id !== undefined && data.user_id !== null;
       const hasDescription = data.description && data.description.trim() !== "";
       const hasAddress = data.address && data.address.trim() !== "";
       const hasPhone = data.phone && data.phone.trim() !== "";
 
-      return hasShopName || hasUserId || hasDescription || hasAddress || hasPhone;
+      return (
+        hasShopName || hasUserId || hasDescription || hasAddress || hasPhone
+      );
     },
     {
       message: "At least one field must be provided for update",
@@ -44,4 +42,3 @@ export const updateShopSchema = z
   );
 
 export type UpdateShopFormData = z.infer<typeof updateShopSchema>;
-

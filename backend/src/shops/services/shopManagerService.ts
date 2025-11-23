@@ -10,7 +10,6 @@ class ShopManagerService {
   ): Promise<ShopManagerWithUser> {
     const shopUser = await shopManagerRepository.create(managerData);
     
-    // Fetch the full manager data with user info
     const managers = await shopManagerRepository.findByShopId(managerData.shop_id);
     const manager = managers.find((m) => m.user_id === managerData.user_id);
     

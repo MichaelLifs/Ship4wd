@@ -32,15 +32,11 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main Content Area */}
       <div className="lg:ml-64 pt-16">
-        {/* Header */}
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        {/* Page Content */}
         <main className="p-4 lg:p-6">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -51,7 +47,6 @@ function HomePage() {
           {renderDashboard()}
         </main>
 
-        {/* Footer */}
         <Footer />
       </div>
     </div>

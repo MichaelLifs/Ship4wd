@@ -65,11 +65,9 @@ class ShopController {
         data: shop,
       });
     } catch (error: unknown) {
-      console.error("Error creating shop:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
       
-      // Check if it's a database error
       if (error && typeof error === "object" && "code" in error) {
         const dbError = error as { code: string; detail?: string; message?: string };
         res.status(500).json({

@@ -35,10 +35,11 @@ export const sanitizeShop = (shop: Shop | null): ShopPublicFields | null => {
 export const formatShop = (shop: Shop | null): ShopPublicFields | null => {
   if (!shop) return null;
 
-  // Parse users from JSON if it's a string, otherwise use as is
-  let users: { id: number; name: string; last_name: string; email: string }[] | null = null;
+  let users:
+    | { id: number; name: string; last_name: string; email: string }[]
+    | null = null;
   if (shop.users) {
-    if (typeof shop.users === 'string') {
+    if (typeof shop.users === "string") {
       try {
         users = JSON.parse(shop.users);
       } catch (e) {
@@ -52,7 +53,11 @@ export const formatShop = (shop: Shop | null): ShopPublicFields | null => {
   return {
     id: shop.id,
     shop_name: shop.shop_name,
-    user_id: Array.isArray(shop.user_id) ? shop.user_id : (shop.user_id ? [shop.user_id] : null),
+    user_id: Array.isArray(shop.user_id)
+      ? shop.user_id
+      : shop.user_id
+      ? [shop.user_id]
+      : null,
     description: shop.description || null,
     address: shop.address || null,
     phone: shop.phone || null,
@@ -77,7 +82,6 @@ export const extractUpdateableFields = (
 
   (SHOP_UPDATEABLE_FIELDS as readonly (keyof UpdateShopData)[]).forEach(
     (field) => {
-      // Include field if it's defined (including null values)
       if (data[field] !== undefined) {
         (updateData as any)[field] = data[field];
       }
@@ -117,4 +121,3 @@ export const SHOP_MODEL_STRUCTURE = {
   created_at: "timestamp (auto)",
   updated_at: "timestamp (auto)",
 } as const;
-

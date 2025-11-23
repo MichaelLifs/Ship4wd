@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { Chart } from 'react-google-charts'
 
-function RevenueChart({ dateRange, onDateRangeChange }) {
+function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }) {
   const [fromDate, setFromDate] = useState(dateRange.from)
   const [toDate, setToDate] = useState(dateRange.to)
 
-  // Mock data - will be replaced with real data later
   const generateMockData = () => {
     const data = [['Date', 'Income', 'Outcome', 'Clear Revenue']]
     
@@ -31,7 +30,7 @@ function RevenueChart({ dateRange, onDateRangeChange }) {
   const chartData = generateMockData()
 
   const chartOptions = {
-    title: 'Shop Revenue Analysis',
+    title: shopName ? `${shopName} - Revenue Analysis` : 'Shop Revenue Analysis',
     curveType: 'function',
     legend: { position: 'bottom' },
     hAxis: {
@@ -43,9 +42,9 @@ function RevenueChart({ dateRange, onDateRangeChange }) {
       title: 'Amount (₪)'
     },
     series: {
-      0: { color: '#ef4444', lineWidth: 3 }, // Red for Income
-      1: { color: '#3b82f6', lineWidth: 3 }, // Blue for Outcome
-      2: { color: '#22c55e', lineWidth: 3 }  // Green for Clear Revenue
+      0: { color: '#ef4444', lineWidth: 3 },
+      1: { color: '#3b82f6', lineWidth: 3 },
+      2: { color: '#22c55e', lineWidth: 3 }
     },
     chartArea: {
       width: '85%',
@@ -55,7 +54,6 @@ function RevenueChart({ dateRange, onDateRangeChange }) {
 
   return (
     <div className="w-full">
-      {/* Date Filter Section */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border border-gray-200">
         <div className="flex flex-col sm:flex-row gap-4 items-end">
           <div className="flex-1">
@@ -89,7 +87,6 @@ function RevenueChart({ dateRange, onDateRangeChange }) {
         </div>
       </div>
 
-      {/* Chart Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <Chart
           chartType="LineChart"

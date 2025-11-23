@@ -4,6 +4,8 @@ import HomePage from '../pages/HomePage'
 import AnalyticsPage from '../pages/AnalyticsPage'
 import UsersPage from '../pages/UsersPage'
 import ShopsPage from '../pages/ShopsPage'
+import ShopsManagementPage from '../pages/ShopsManagementPage'
+import ShopManagerShopsPage from '../pages/ShopManagerShopsPage'
 import SettingsPage from '../pages/SettingsPage'
 
 function App(): JSX.Element {
@@ -15,6 +17,8 @@ function App(): JSX.Element {
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/shops" element={<ShopsPage />} />
+        <Route path="/shops-management" element={<ShopsManagementPage />} />
+        <Route path="/my-shops" element={<ShopManagerShopsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>

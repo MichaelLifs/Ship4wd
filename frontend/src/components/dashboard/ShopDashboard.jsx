@@ -1,5 +1,4 @@
 function ShopDashboard() {
-  // Mock data - will be replaced with API calls later
   const stats = {
     totalIncome: 101333,
     totalExpense: 26830,
