@@ -1,0 +1,15 @@
+SELECT 
+    u.id as user_id,
+    $1 as shop_id,
+    u.id as user_table_id,
+    u.name,
+    u.last_name,
+    u.email,
+    u.role,
+    NOW() as created_at
+FROM shops s
+CROSS JOIN LATERAL UNNEST(COALESCE(s.user_id, ARRAY[]::INTEGER[])) AS user_id_val
+INNER JOIN users u ON u.id = user_id_val
+WHERE s.id = $1 AND s.deleted = false AND u.deleted = false
+ORDER BY u.id;
+

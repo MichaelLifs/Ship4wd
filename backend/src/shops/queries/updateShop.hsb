@@ -1,0 +1,5 @@
+UPDATE shops 
+SET {FIELDS}
+WHERE id = {ID_PARAM} AND deleted = false 
+RETURNING id, shop_name, user_id, description, address, phone, deleted, created_at, updated_at;
+

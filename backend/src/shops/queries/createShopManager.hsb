@@ -1,0 +1,8 @@
+UPDATE shops 
+SET user_id = CASE 
+  WHEN $2 = ANY(COALESCE(user_id, ARRAY[]::INTEGER[])) THEN user_id
+  ELSE COALESCE(user_id, ARRAY[]::INTEGER[]) || ARRAY[$2]::INTEGER[]
+END
+WHERE id = $1 AND deleted = false
+RETURNING id, $1 as shop_id, $2 as user_id, NOW() as created_at;
+

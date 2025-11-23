@@ -1,4 +1,93 @@
+@import 'ag-grid-community/styles/ag-grid.css';
+@import 'ag-grid-community/styles/ag-theme-alpine.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* AG Grid Custom Styling */
+.ag-theme-alpine {
+  --ag-header-background-color: #f8fafc;
+  --ag-header-foreground-color: #1e293b;
+  --ag-border-color: #e2e8f0;
+  --ag-row-hover-color: #f1f5f9;
+  --ag-selected-row-background-color: #e0f2fe;
+  --ag-odd-row-background-color: #ffffff;
+  --ag-even-row-background-color: #fafafa;
+  --ag-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ag-font-size: 14px;
+  --ag-header-height: 50px;
+  --ag-row-height: 50px;
+}
+
+.ag-theme-alpine .ag-header {
+  border-bottom: 2px solid #e2e8f0;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ag-theme-alpine .ag-row {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.ag-theme-alpine .ag-row:hover {
+  background-color: #f8fafc;
+}
+
+.ag-theme-alpine .ag-row-selected {
+  background-color: #e0f2fe !important;
+}
+
+.ag-theme-alpine .ag-cell {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.ag-theme-alpine .ag-header-cell {
+  padding: 0 16px;
+}
+
+@layer components {
+  /* Button Sizes - Consistent across the project */
+  .btn-sm {
+    @apply px-2.5 py-1 text-xs font-medium rounded transition-colors;
+  }
+
+  .btn {
+    @apply px-3 py-1.5 text-xs font-medium rounded-lg transition-colors;
+  }
+
+  .btn-lg {
+    @apply px-4 py-2 text-sm font-semibold rounded-lg transition-colors;
+  }
+
+  /* Button Variants */
+  .btn-primary {
+    @apply bg-green-600 hover:bg-green-700 text-white;
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700;
+  }
+
+  .btn-outline {
+    @apply bg-white border border-gray-300 hover:bg-gray-50 text-gray-700;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white;
+  }
+
+  .btn-success {
+    @apply bg-green-600 text-white;
+  }
+
+  /* Full width buttons */
+  .btn-full {
+    @apply w-full px-3 py-1.5 text-xs font-medium rounded transition-colors text-left;
+  }
+}
 

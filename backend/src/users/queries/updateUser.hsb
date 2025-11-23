@@ -1,0 +1,5 @@
+UPDATE users 
+SET {FIELDS}
+WHERE id = {ID_PARAM} AND deleted = false 
+RETURNING id, name, last_name, email, role, deleted, created_at, updated_at;
+

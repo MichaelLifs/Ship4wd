@@ -1,0 +1,4 @@
+INSERT INTO shops (shop_name, user_id, description, address, phone) 
+VALUES ($1, $2, $3, $4, $5) 
+RETURNING id, shop_name, user_id, description, address, phone, deleted, created_at, updated_at;
+
