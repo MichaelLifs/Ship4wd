@@ -53,6 +53,121 @@ interface ActionMenuParams {
   };
 }
 
+const UsersCellRenderer = (params: any) => {
+  const users = params.data?.users || []
+  
+  if (!users || !Array.isArray(users) || users.length === 0) {
+    return <span style={{ display: 'flex', alignItems: 'center', height: '100%' }}>-</span>
+  }
+  
+  const fullText = users.map((u: any) => `${u.name} ${u.last_name}`).join(', ')
+  const maxLength = 30
+  const displayText = fullText.length > maxLength 
+    ? fullText.substring(0, maxLength) + '...' 
+    : fullText
+  
+  const shouldShowTooltip = fullText.length > maxLength
+  const [showTooltip, setShowTooltip] = useState(false)
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
+  const [arrowLeft, setArrowLeft] = useState(0)
+  const cellRef = useRef<HTMLSpanElement>(null)
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  
+  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+    if (!shouldShowTooltip || !cellRef.current) return
+    
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+    }
+    
+    tooltipTimeoutRef.current = setTimeout(() => {
+      if (!cellRef.current) return
+      
+      const rect = cellRef.current.getBoundingClientRect()
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop
+      
+      const tooltipWidth = Math.min(384, window.innerWidth - 40)
+      let left = rect.left + scrollX
+      
+      const margin = 20
+      if (left + tooltipWidth > window.innerWidth - margin + scrollX) {
+        left = window.innerWidth - tooltipWidth - margin + scrollX
+      }
+      if (left < margin + scrollX) {
+        left = margin + scrollX
+      }
+      
+      const cellCenter = rect.left + scrollX + (rect.width / 2)
+      const arrowPosition = cellCenter - left
+      
+      setTooltipPosition({
+        top: rect.top + scrollY,
+        left: left
+      })
+      setArrowLeft(Math.max(16, Math.min(arrowPosition, tooltipWidth - 16)))
+      setShowTooltip(true)
+    }, 200)
+  }
+  
+  const handleMouseLeave = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current)
+      tooltipTimeoutRef.current = null
+    }
+    setShowTooltip(false)
+  }
+  
+  useEffect(() => {
+    return () => {
+      if (tooltipTimeoutRef.current) {
+        clearTimeout(tooltipTimeoutRef.current)
+      }
+    }
+  }, [])
+  
+  return (
+    <>
+      <span 
+        ref={cellRef}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        className={`cursor-default ${shouldShowTooltip ? 'hover:text-gray-700 transition-colors' : ''}`}
+        style={{ display: 'flex', alignItems: 'center', height: '100%' }}
+      >
+        {displayText}
+      </span>
+      {showTooltip && shouldShowTooltip && createPortal(
+        <div
+          className="fixed bg-gray-900 text-gray-100 text-sm px-4 py-3 rounded-lg shadow-2xl max-w-md pointer-events-none"
+          style={{
+            top: `${tooltipPosition.top}px`,
+            left: `${tooltipPosition.left}px`,
+            transform: 'translateY(-100%) translateY(-8px)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            zIndex: 999999,
+            opacity: 1,
+            transition: 'opacity 0.2s ease-out'
+          }}
+        >
+          <div className="relative">
+            <div className="whitespace-normal break-words">{fullText}</div>
+            <div
+              className="absolute w-2 h-2 bg-gray-900 transform rotate-45 border-r border-b border-gray-700"
+              style={{
+                left: `${arrowLeft}px`,
+                bottom: '-4px'
+              }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
 const DescriptionCellRenderer = (params: any) => {
   const description = params.value || ''
   const maxLength = 50
@@ -1419,11 +1534,11 @@ function ShopsManagementPage() {
       sortable: true, 
       filter: true,
       cellStyle: { display: 'flex', alignItems: 'center' },
+      cellRenderer: UsersCellRenderer,
       valueGetter: (params: any) => {
         if (!params.data?.users || !Array.isArray(params.data.users) || params.data.users.length === 0) return '-'
         return params.data.users.map((u: any) => `${u.name} ${u.last_name}`).join(', ')
-      },
-      valueFormatter: (params: any) => params.value || '-'
+      }
     },
     {
       headerName: '',

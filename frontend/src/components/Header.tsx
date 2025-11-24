@@ -2,15 +2,31 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/authService'
 
-function Header({ onMenuClick, dateRange }) {
+interface HeaderProps {
+  onMenuClick: () => void
+  dateRange?: {
+    from: string
+    to: string
+  }
+}
+
+interface User {
+  id: number
+  name: string
+  last_name: string
+  email: string
+  role: string | null
+}
+
+function Header({ onMenuClick, dateRange }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<User | null>(null)
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [showMailTooltip, setShowMailTooltip] = useState(false)
   const [showNotificationTooltip, setShowNotificationTooltip] = useState(false)
-  const dropdownRef = useRef(null)
-  const searchRef = useRef(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,11 +35,11 @@ function Header({ onMenuClick, dateRange }) {
   }, [])
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false)
       }
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setSearchOpen(false)
       }
     }
@@ -44,7 +60,7 @@ function Header({ onMenuClick, dateRange }) {
     navigate('/settings')
   }
 
-  const getInitials = () => {
+  const getInitials = (): string => {
     if (!user) return 'U'
     const firstName = user.name || ''
     const lastName = user.last_name || ''
@@ -57,7 +73,7 @@ function Header({ onMenuClick, dateRange }) {
     return 'U'
   }
 
-  const getUserDisplayName = () => {
+  const getUserDisplayName = (): string => {
     if (!user) return ''
     const firstName = user.name || ''
     const lastName = user.last_name || ''
@@ -70,7 +86,7 @@ function Header({ onMenuClick, dateRange }) {
     return ''
   }
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     if (!dateString) return ''
     const date = new Date(dateString)
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })

@@ -6,13 +6,20 @@ import { authService } from '../services/authService'
 import { userService } from '../services/userService'
 import { toast } from 'react-toastify'
 
+interface FormData {
+  name: string
+  last_name: string
+  email: string
+  password: string
+}
+
 function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const navigate = useNavigate()
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     last_name: '',
     email: '',
@@ -43,7 +50,7 @@ function SettingsPage() {
     }
   }
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -61,7 +68,7 @@ function SettingsPage() {
     try {
       setIsSaving(true)
       
-      const updateData = {
+      const updateData: Partial<FormData> = {
         name: formData.name,
         last_name: formData.last_name,
         email: formData.email,
@@ -301,3 +308,4 @@ function SettingsPage() {
 }
 
 export default SettingsPage
+

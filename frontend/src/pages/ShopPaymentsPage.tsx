@@ -9,6 +9,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { expenseService } from '../services/expenseService'
 import { shopService } from '../services/shopService'
+import { userService } from '../services/userService'
 
 ModuleRegistry.registerModules([AllCommunityModule])
 
@@ -18,6 +19,7 @@ interface ShopExpense {
   amount: number;
   expense_date: string;
   shop_name?: string;
+  managers?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +40,38 @@ interface ActionMenuParams {
     onEdit?: (expense: ShopExpense) => void;
     onDelete?: (expense: ShopExpense) => void;
   };
+}
+
+const ManagersCellRenderer = (params: any) => {
+  const managers = params.value || []
+  
+  if (managers.length === 0) {
+    return <span className="text-gray-400">No managers</span>
+  }
+  
+  const fullText = managers.join(', ')
+  const maxLength = 30
+  const displayText = fullText.length > maxLength 
+    ? fullText.substring(0, maxLength) + '...' 
+    : fullText
+  
+  if (fullText.length > maxLength) {
+    return (
+      <span 
+        title={fullText} 
+        className="cursor-help"
+        style={{ display: 'flex', alignItems: 'center', height: '100%' }}
+      >
+        {displayText}
+      </span>
+    )
+  }
+  
+  return (
+    <span style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+      {displayText}
+    </span>
+  )
 }
 
 const ActionMenu = (params: ActionMenuParams) => {
@@ -471,15 +505,34 @@ function ShopPaymentsPage() {
       // Fetch all expenses
       const expenses = await expenseService.getAllExpenses()
       
-      // Fetch all shops to map shop_id to shop_name
+      // Fetch all shops to map shop_id to shop_name and user_id
       const shops = await shopService.getAllShops()
-      const shopMap = new Map(shops.map(shop => [shop.id, shop.shop_name]))
+      const shopMap = new Map(shops.map(shop => [shop.id, shop]))
       
-      // Enrich expenses with shop names
-      const enrichedExpenses: ShopExpense[] = expenses.map(expense => ({
-        ...expense,
-        shop_name: shopMap.get(expense.shop_id) || `Shop #${expense.shop_id}`
-      }))
+      // Fetch all users to map user_id to name + last_name
+      const users = await userService.getAllUsers()
+      const userMap = new Map(users.map(user => [user.id, `${user.name} ${user.last_name}`.trim()]))
+      
+      // Enrich expenses with shop names and manager names
+      const enrichedExpenses: ShopExpense[] = expenses.map(expense => {
+        const shop = shopMap.get(expense.shop_id)
+        const managerNames: string[] = []
+        
+        if (shop && shop.user_id && Array.isArray(shop.user_id)) {
+          shop.user_id.forEach(userId => {
+            const userName = userMap.get(userId)
+            if (userName) {
+              managerNames.push(userName)
+            }
+          })
+        }
+        
+        return {
+          ...expense,
+          shop_name: shop?.shop_name || `Shop #${expense.shop_id}`,
+          managers: managerNames
+        }
+      })
       
       setRowData(enrichedExpenses)
     } catch (err) {
@@ -505,6 +558,15 @@ function ShopPaymentsPage() {
       sortable: true, 
       filter: true,
       cellStyle: { display: 'flex', alignItems: 'center' }
+    },
+    {
+      field: 'managers',
+      headerName: 'Managers',
+      width: 250,
+      sortable: true,
+      filter: true,
+      cellStyle: { display: 'flex', alignItems: 'center' },
+      cellRenderer: ManagersCellRenderer
     },
     { 
       field: 'amount', 

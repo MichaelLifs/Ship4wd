@@ -1,12 +1,24 @@
 import { useState } from 'react'
 import { Chart } from 'react-google-charts'
 
-function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }) {
+interface RevenueChartProps {
+  dateRange: {
+    from: string
+    to: string
+  }
+  onDateRangeChange: (range: { from: string; to: string }) => void
+  shopId?: number
+  shopName?: string | null
+}
+
+type ChartData = (string | number)[][]
+
+function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }: RevenueChartProps) {
   const [fromDate, setFromDate] = useState(dateRange.from)
   const [toDate, setToDate] = useState(dateRange.to)
 
-  const generateMockData = () => {
-    const data = [['Date', 'Income', 'Outcome', 'Clear Revenue']]
+  const generateMockData = (): ChartData => {
+    const data: ChartData = [['Date', 'Income', 'Outcome', 'Clear Revenue']]
     
     const startDate = new Date(dateRange.from)
     const endDate = new Date(dateRange.to)
@@ -31,8 +43,8 @@ function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }) {
 
   const chartOptions = {
     title: shopName ? `${shopName} - Revenue Analysis` : 'Shop Revenue Analysis',
-    curveType: 'function',
-    legend: { position: 'bottom' },
+    curveType: 'function' as const,
+    legend: { position: 'bottom' as const },
     hAxis: {
       title: 'Date',
       slantedText: true,

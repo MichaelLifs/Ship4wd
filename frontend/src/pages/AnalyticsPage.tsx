@@ -12,7 +12,7 @@ function AnalyticsPage() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const shopId = searchParams.get('shopId')
-  const [shopName, setShopName] = useState(null)
+  const [shopName, setShopName] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   
   const [dateRange, setDateRange] = useState({
@@ -28,7 +28,7 @@ function AnalyticsPage() {
     }
   }, [shopId])
 
-  const fetchShopDetails = async (id) => {
+  const fetchShopDetails = async (id: number) => {
     try {
       setLoading(true)
       const shop = await shopService.getShopById(id)
@@ -42,7 +42,7 @@ function AnalyticsPage() {
     }
   }
 
-  const handleDateRangeChange = (newRange) => {
+  const handleDateRangeChange = (newRange: { from: string; to: string }) => {
     setDateRange(newRange)
   }
 
