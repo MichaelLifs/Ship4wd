@@ -120,10 +120,6 @@ Management system for grocery shops with role-based access control (Admin, Shop 
 - **Backend API**: http://localhost:4000
 - **Swagger API Documentation**: http://localhost:4000/api-docs
 
-## 🛠️ Tech Stack
-
-- **Frontend**: React 19, Vite, Tailwind CSS, React Router, React Google Charts
-- **Backend**: Node.js, Express, TypeScript, PostgreSQL
 
 ## 🏗️ Project Architecture
 
