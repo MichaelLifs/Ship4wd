@@ -1485,14 +1485,6 @@ function ShopsManagementPage() {
 
   const columnDefs = useMemo(() => [
     { 
-      field: 'id', 
-      headerName: 'ID', 
-      width: 100, 
-      sortable: true, 
-      filter: true,
-      cellStyle: { display: 'flex', alignItems: 'center' }
-    },
-    { 
       field: 'shop_name', 
       headerName: 'Shop Name', 
       width: 250, 
