@@ -1,0 +1,4 @@
+SELECT id, shop_id, customer_name, amount, transaction_date, deleted, created_at, updated_at
+FROM income_transactions
+WHERE id = $1 AND deleted = false;
+

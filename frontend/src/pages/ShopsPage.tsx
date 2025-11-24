@@ -8,6 +8,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { shopService } from '../services/shopService'
 import { userService } from '../services/userService'
+import { incomeTransactionService } from '../services/incomeTransactionService'
+import { authService } from '../services/authService'
 import { createShopSchema, type CreateShopFormData } from '../validator/createShopSchema'
 import { updateShopSchema, type UpdateShopFormData } from '../validator/updateShopSchema'
 interface Shop {
@@ -617,6 +619,7 @@ const ManageManagersDialog = ({ isOpen, onClose, onSuccess, shop: initialShop }:
 const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: () => void; shop: Shop | null }) => {
   const [date, setDate] = useState('')
   const [amount, setAmount] = useState('')
+  const [customerName, setCustomerName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
 
@@ -625,7 +628,14 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
       const today = new Date().toISOString().split('T')[0]
       setDate(today)
       setAmount('')
+      setCustomerName('')
       setError('')
+      
+      // Get current user name for customer_name
+      const currentUser = authService.getCurrentUser()
+      if (currentUser) {
+        setCustomerName(`${currentUser.name} ${currentUser.last_name}`.trim())
+      }
     }
   }, [isOpen])
 
@@ -642,14 +652,31 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
       return
     }
 
+    if (!customerName || customerName.trim() === '') {
+      setError('Please enter customer name')
+      return
+    }
+
+    if (!shop) {
+      setError('Shop information is missing')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       setError('')
       
-      toast.success(`Purchase created successfully! Date: ${date}, Amount: $${amount}`)
+      await incomeTransactionService.createIncomeTransaction({
+        shop_id: shop.id,
+        customer_name: customerName.trim(),
+        amount: parseFloat(amount),
+        transaction_date: date
+      })
+      
+      toast.success(`Payment created successfully! Date: ${date}, Amount: $${parseFloat(amount).toFixed(2)}`)
       onClose()
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create purchase'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create payment'
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {
@@ -670,7 +697,7 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">New Purchase</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Make Payment</h2>
             <button
               type="button"
               onClick={onClose}
@@ -694,11 +721,26 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="purchase-date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="customer-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Customer Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                id="customer-name"
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Enter customer name"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="payment-date" className="block text-sm font-medium text-gray-700 mb-1">
                 Date <span className="text-red-500">*</span>
               </label>
               <input
-                id="purchase-date"
+                id="payment-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -708,11 +750,11 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
             </div>
 
             <div>
-              <label htmlFor="purchase-amount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="payment-amount" className="block text-sm font-medium text-gray-700 mb-1">
                 Amount ($) <span className="text-red-500">*</span>
               </label>
               <input
-                id="purchase-amount"
+                id="payment-amount"
                 type="number"
                 step="0.01"
                 min="0"

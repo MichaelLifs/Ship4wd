@@ -1,0 +1,5 @@
+SELECT id, shop_id, customer_name, amount, transaction_date, deleted, created_at, updated_at
+FROM income_transactions
+WHERE shop_id = $1 AND deleted = false
+ORDER BY transaction_date DESC, id DESC;
+

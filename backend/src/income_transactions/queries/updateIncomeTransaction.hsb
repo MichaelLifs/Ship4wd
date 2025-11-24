@@ -1,0 +1,5 @@
+UPDATE income_transactions 
+SET {FIELDS}
+WHERE id = {ID_PARAM} AND deleted = false 
+RETURNING id, shop_id, customer_name, amount, transaction_date, deleted, created_at, updated_at;
+
