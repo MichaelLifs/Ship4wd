@@ -1,25 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
-import { authService } from '../services/authService'
-
-interface User {
-  id: number
-  name: string
-  last_name: string
-  email: string
-  role: string | null
-}
 
 function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    const currentUser = authService.getCurrentUser()
-    setUser(currentUser)
-  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">

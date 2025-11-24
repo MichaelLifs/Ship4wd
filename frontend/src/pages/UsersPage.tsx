@@ -55,8 +55,9 @@ const ActionMenu = (params: ActionMenuParams) => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target) &&
-          buttonRef.current && !buttonRef.current.contains(event.target)) {
+      const target = event.target as Node | null
+      if (menuRef.current && !menuRef.current.contains(target) &&
+          buttonRef.current && !buttonRef.current.contains(target)) {
         setIsOpen(false)
       }
     }
@@ -203,6 +204,7 @@ const EditUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => {
   }
 
   const onSubmit = async (data: UpdateUserFormData) => {
+    if (!user) return
     try {
       setIsSubmitting(true)
       setSubmitError('')
@@ -432,6 +434,7 @@ const DeleteUserDialog = ({ isOpen, onClose, onSuccess, user }: DialogProps) => 
   const [deleteError, setDeleteError] = useState('')
 
   const handleDelete = async () => {
+    if (!user) return
     try {
       setIsDeleting(true)
       setDeleteError('')
@@ -854,13 +857,13 @@ function UsersPage() {
       sortable: true, 
       filter: true,
       cellStyle: { display: 'flex', alignItems: 'center' },
-      valueFormatter: (params) => params.value || 'user'
+      valueFormatter: (params: any) => params.value || 'user'
     },
     {
       headerName: '',
       field: 'actions',
       width: 60,
-      pinned: 'right',
+      pinned: 'right' as const,
       lockPosition: true,
       sortable: false,
       filter: false,
@@ -870,7 +873,7 @@ function UsersPage() {
         onEdit: handleEdit,
         onDelete: handleDelete
       },
-      cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      cellStyle: { display: 'flex', alignItems: 'center', justifyContent: 'center' } as any
     }
   ], [])
 

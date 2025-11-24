@@ -73,7 +73,7 @@ const UsersCellRenderer = (params: any) => {
   const cellRef = useRef<HTMLSpanElement>(null)
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
-  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+  const handleMouseEnter = () => {
     if (!shouldShowTooltip || !cellRef.current) return
     
     if (tooltipTimeoutRef.current) {
@@ -187,7 +187,7 @@ const DescriptionCellRenderer = (params: any) => {
   
   const shouldShowTooltip = description.length > maxLength
   
-  const handleMouseEnter = (e: React.MouseEvent<HTMLSpanElement>) => {
+  const handleMouseEnter = () => {
     if (!shouldShowTooltip || !cellRef.current) return
     
     if (tooltipTimeoutRef.current) {

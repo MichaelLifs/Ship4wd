@@ -194,7 +194,6 @@ const ActionMenu = (params: ActionMenuParams) => {
 const EditPaymentDialog = ({ isOpen, onClose, onSuccess, payment }: DialogProps) => {
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [allShops, setAllShops] = useState<any[]>([])
 
   const {
     register,
@@ -207,9 +206,6 @@ const EditPaymentDialog = ({ isOpen, onClose, onSuccess, payment }: DialogProps)
 
   useEffect(() => {
     if (isOpen) {
-      shopService.getAllShops().then(shops => {
-        setAllShops(shops)
-      }).catch(() => {})
       
       if (payment) {
         reset({

@@ -11,7 +11,7 @@ import ShopPaymentsPage from '../pages/ShopPaymentsPage'
 import SettingsPage from '../pages/SettingsPage'
 import OperatingInstructionsPage from '../pages/OperatingInstructionsPage'
 
-function App(): JSX.Element {
+function App() {
   return (
     <BrowserRouter>
       <Routes>
