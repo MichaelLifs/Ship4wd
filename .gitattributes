@@ -1,0 +1,6 @@
+# Map .hsb files to SQL since they contain SQL queries
+*.hsb linguist-language=SQL
+
+# Ensure these are counted in language statistics
+*.hsb linguist-detectable=true
+
