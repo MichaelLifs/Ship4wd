@@ -6,6 +6,8 @@ import UsersPage from '../pages/UsersPage'
 import ShopsPage from '../pages/ShopsPage'
 import ShopsManagementPage from '../pages/ShopsManagementPage'
 import ShopManagerShopsPage from '../pages/ShopManagerShopsPage'
+import CustomerPaymentsPage from '../pages/CustomerPaymentsPage'
+import ShopPaymentsPage from '../pages/ShopPaymentsPage'
 import SettingsPage from '../pages/SettingsPage'
 
 function App(): JSX.Element {
@@ -19,6 +21,8 @@ function App(): JSX.Element {
         <Route path="/shops" element={<ShopsPage />} />
         <Route path="/shops-management" element={<ShopsManagementPage />} />
         <Route path="/my-shops" element={<ShopManagerShopsPage />} />
+        <Route path="/customer-payments" element={<CustomerPaymentsPage />} />
+        <Route path="/shop-payments" element={<ShopPaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>

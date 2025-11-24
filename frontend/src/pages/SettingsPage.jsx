@@ -1,14 +1,35 @@
 import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../services/authService'
+import { userService } from '../services/userService'
+import { toast } from 'react-toastify'
 
 function SettingsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const navigate = useNavigate()
-  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  
+  const [formData, setFormData] = useState({
+    name: '',
+    last_name: '',
+    email: '',
+    password: ''
+  })
+
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser()
+    if (currentUser) {
+      setFormData({
+        name: currentUser.name || '',
+        last_name: currentUser.last_name || '',
+        email: currentUser.email || '',
+        password: ''
+      })
+    }
+  }, [])
 
   const handleLogout = () => {
     authService.logout()
@@ -19,6 +40,55 @@ function SettingsPage() {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
       authService.logout()
       navigate('/login')
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handleSaveChanges = async () => {
+    const currentUser = authService.getCurrentUser()
+    if (!currentUser || !currentUser.id) {
+      toast.error('User not found')
+      return
+    }
+
+    try {
+      setIsSaving(true)
+      
+      const updateData = {
+        name: formData.name,
+        last_name: formData.last_name,
+        email: formData.email,
+      }
+
+      // Only include password if it's not empty
+      if (formData.password && formData.password.trim() !== '') {
+        updateData.password = formData.password
+      }
+
+      const updatedUser = await userService.updateUser(currentUser.id, updateData)
+      
+      // Update localStorage with new user data
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+      
+      // Update form data (clear password field)
+      setFormData(prev => ({
+        ...prev,
+        password: ''
+      }))
+      
+      toast.success('Profile updated successfully!')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      toast.error(errorMessage)
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -41,7 +111,7 @@ function SettingsPage() {
                 <h2 className="text-sm font-semibold text-gray-900 mb-3">Profile picture</h2>
                 <div className="flex items-start gap-4">
                   <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold text-lg">
-                    {user.name?.[0]?.toUpperCase() || 'U'}{user.last_name?.[0]?.toUpperCase() || ''}
+                    {formData.name?.[0]?.toUpperCase() || 'U'}{formData.last_name?.[0]?.toUpperCase() || ''}
                   </div>
                 </div>
               </div>
@@ -53,7 +123,9 @@ function SettingsPage() {
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">First name</label>
                     <input
                       type="text"
-                      defaultValue={user.name || ''}
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="First name"
                     />
@@ -62,7 +134,9 @@ function SettingsPage() {
                     <label className="block text-xs font-medium text-gray-700 mb-1.5">Last name</label>
                     <input
                       type="text"
-                      defaultValue={user.last_name || ''}
+                      name="last_name"
+                      value={formData.last_name}
+                      onChange={handleInputChange}
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="Last name"
                     />
@@ -82,34 +156,19 @@ function SettingsPage() {
                     </div>
                     <input
                       type="email"
-                      defaultValue={user.email || ''}
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="Email"
                     />
                   </div>
-                  <button className="flex items-center gap-1.5 text-green-600 hover:text-green-700 font-medium text-xs">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Add another email
-                  </button>
                 </div>
               </div>
 
-              <div className="flex justify-end">
-                <button className="btn-lg btn-primary">
-                  Save Changes
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className="mb-3">
-                <h1 className="text-xl font-bold text-gray-900 mb-1">Password</h1>
-                <p className="text-xs text-gray-600">Set your new password.</p>
-              </div>
-
               <div className="bg-white rounded-lg shadow-sm p-4">
+                <h2 className="text-sm font-semibold text-gray-900 mb-1">Password</h2>
+                <p className="text-xs text-gray-600 mb-3">Set your new password.</p>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">New password</label>
                   <div className="relative">
@@ -120,6 +179,9 @@ function SettingsPage() {
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
                       className="w-full pl-9 pr-9 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="New password"
                     />
@@ -141,6 +203,16 @@ function SettingsPage() {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end">
+                <button 
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className={`btn-lg btn-primary ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </button>
               </div>
             </div>
 
@@ -219,15 +291,6 @@ function SettingsPage() {
                   </svg>
                   <span>Log out</span>
                 </button>
-                <button
-                  onClick={handleDeleteAccount}
-                  className="btn btn-danger flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  <span>Delete my account</span>
-                </button>
               </div>
             </div>
           </div>
@@ -238,4 +301,3 @@ function SettingsPage() {
 }
 
 export default SettingsPage
-

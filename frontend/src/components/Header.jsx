@@ -5,7 +5,12 @@ import { authService } from '../services/authService'
 function Header({ onMenuClick, dateRange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [user, setUser] = useState(null)
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showMailTooltip, setShowMailTooltip] = useState(false)
+  const [showNotificationTooltip, setShowNotificationTooltip] = useState(false)
   const dropdownRef = useRef(null)
+  const searchRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -17,6 +22,9 @@ function Header({ onMenuClick, dateRange }) {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false)
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setSearchOpen(false)
       }
     }
 
@@ -92,10 +100,34 @@ function Header({ onMenuClick, dateRange }) {
         </div>
       )}
 
+      {/* Search Bar */}
+      {searchOpen && (
+        <div ref={searchRef} className="absolute left-4 right-4 lg:left-auto lg:right-auto lg:w-96 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+              autoFocus
+            />
+          </div>
+        </div>
+      )}
+
       {/* Right Side Icons */}
       <div className="flex items-center gap-2 lg:gap-3">
         {/* Search Icon */}
-        <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+        <button 
+          onClick={() => setSearchOpen(!searchOpen)}
+          className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+        >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -104,34 +136,46 @@ function Header({ onMenuClick, dateRange }) {
         {/* Divider */}
         <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
 
-        {/* Calendar Icon */}
-        <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        </button>
-
-        {/* Divider */}
-        <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-
         {/* Mail Icon */}
-        <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors relative">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowMailTooltip(!showMailTooltip)}
+            onMouseLeave={() => setShowMailTooltip(false)}
+            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors relative"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </button>
+          {showMailTooltip && (
+            <div className="absolute right-0 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap z-50">
+              no new message
+              <div className="absolute right-4 -top-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+            </div>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
 
         {/* Notifications Icon */}
-        <button className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors relative">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowNotificationTooltip(!showNotificationTooltip)}
+            onMouseLeave={() => setShowNotificationTooltip(false)}
+            className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors relative"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </button>
+          {showNotificationTooltip && (
+            <div className="absolute right-0 mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-lg whitespace-nowrap z-50">
+              no new notification
+              <div className="absolute right-4 -top-1 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+            </div>
+          )}
+        </div>
 
         {/* Divider */}
         <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
