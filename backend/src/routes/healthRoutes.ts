@@ -3,6 +3,12 @@ import pool from "../db/database.js";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /health:
+ *   get:
+ *     tags: [Health]
+ */
 router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const result = await pool.query("SELECT NOW()");
@@ -22,4 +28,3 @@ router.get("/", async (req: Request, res: Response): Promise<void> => {
 });
 
 export default router;
-

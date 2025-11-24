@@ -10,31 +10,56 @@ import {
 
 const router = Router();
 
-// Get all expenses
+/**
+ * @swagger
+ * /api/expenses:
+ *   get:
+ *     tags: [Expenses]
+ */
 router.get("/", expenseController.getAllExpenses.bind(expenseController));
 
-// Get expenses by shop ID
+/**
+ * @swagger
+ * /api/expenses/shop/{shopId}:
+ *   get:
+ *     tags: [Expenses]
+ */
 router.get(
   "/shop/:shopId",
   validate(shopIdSchema, "params"),
   expenseController.getExpensesByShopId.bind(expenseController)
 );
 
-// Get expense by ID
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   get:
+ *     tags: [Expenses]
+ */
 router.get(
   "/:id",
   validate(expenseIdSchema, "params"),
   expenseController.getExpenseById.bind(expenseController)
 );
 
-// Create expense
+/**
+ * @swagger
+ * /api/expenses:
+ *   post:
+ *     tags: [Expenses]
+ */
 router.post(
   "/",
   validate(createExpenseSchema),
   expenseController.createExpense.bind(expenseController)
 );
 
-// Update expense
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   put:
+ *     tags: [Expenses]
+ */
 router.put(
   "/:id",
   validate(expenseIdSchema, "params"),
@@ -42,7 +67,12 @@ router.put(
   expenseController.updateExpense.bind(expenseController)
 );
 
-// Delete expense
+/**
+ * @swagger
+ * /api/expenses/{id}:
+ *   delete:
+ *     tags: [Expenses]
+ */
 router.delete(
   "/:id",
   validate(expenseIdSchema, "params"),
@@ -50,4 +80,3 @@ router.delete(
 );
 
 export default router;
-

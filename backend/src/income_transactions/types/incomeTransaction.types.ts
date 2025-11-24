@@ -13,13 +13,13 @@ export interface CreateIncomeTransactionData {
   shop_id: number;
   customer_name: string;
   amount: number;
-  transaction_date: string; // ISO date string
+  transaction_date: string;
 }
 
 export interface UpdateIncomeTransactionData {
   customer_name?: string;
   amount?: number;
-  transaction_date?: string; // ISO date string
+  transaction_date?: string;
 }
 
 export interface IncomeTransactionPublicFields {
@@ -32,4 +32,3 @@ export interface IncomeTransactionPublicFields {
   created_at: Date;
   updated_at: Date;
 }
-

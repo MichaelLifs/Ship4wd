@@ -74,17 +74,14 @@ function SettingsPage() {
         email: formData.email,
       }
 
-      // Only include password if it's not empty
       if (formData.password && formData.password.trim() !== '') {
         updateData.password = formData.password
       }
 
       const updatedUser = await userService.updateUser(currentUser.id, updateData)
       
-      // Update localStorage with new user data
       localStorage.setItem('user', JSON.stringify(updatedUser))
       
-      // Update form data (clear password field)
       setFormData(prev => ({
         ...prev,
         password: ''

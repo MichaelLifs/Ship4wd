@@ -10,7 +10,12 @@ import {
 
 const router = Router();
 
-// Get all income transactions
+/**
+ * @swagger
+ * /api/income-transactions:
+ *   get:
+ *     tags: [Income Transactions]
+ */
 router.get(
   "/",
   incomeTransactionController.getAllIncomeTransactions.bind(
@@ -18,7 +23,12 @@ router.get(
   )
 );
 
-// Get income transactions by shop ID
+/**
+ * @swagger
+ * /api/income-transactions/shop/{shopId}:
+ *   get:
+ *     tags: [Income Transactions]
+ */
 router.get(
   "/shop/:shopId",
   validate(shopIdSchema, "params"),
@@ -27,7 +37,12 @@ router.get(
   )
 );
 
-// Get income transaction by ID
+/**
+ * @swagger
+ * /api/income-transactions/{id}:
+ *   get:
+ *     tags: [Income Transactions]
+ */
 router.get(
   "/:id",
   validate(incomeTransactionIdSchema, "params"),
@@ -36,7 +51,12 @@ router.get(
   )
 );
 
-// Create income transaction
+/**
+ * @swagger
+ * /api/income-transactions:
+ *   post:
+ *     tags: [Income Transactions]
+ */
 router.post(
   "/",
   validate(createIncomeTransactionSchema),
@@ -45,7 +65,12 @@ router.post(
   )
 );
 
-// Update income transaction
+/**
+ * @swagger
+ * /api/income-transactions/{id}:
+ *   put:
+ *     tags: [Income Transactions]
+ */
 router.put(
   "/:id",
   validate(incomeTransactionIdSchema, "params"),
@@ -55,7 +80,12 @@ router.put(
   )
 );
 
-// Delete income transaction
+/**
+ * @swagger
+ * /api/income-transactions/{id}:
+ *   delete:
+ *     tags: [Income Transactions]
+ */
 router.delete(
   "/:id",
   validate(incomeTransactionIdSchema, "params"),
@@ -65,4 +95,3 @@ router.delete(
 );
 
 export default router;
-

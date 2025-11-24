@@ -94,7 +94,6 @@ function Header({ onMenuClick, dateRange }: HeaderProps) {
 
   return (
     <header className="bg-white h-16 shadow-sm fixed top-0 left-0 lg:left-64 right-0 z-20 flex items-center justify-end px-4 lg:px-6 border-b border-gray-200">
-      {/* Mobile Menu Button */}
       <button 
         onClick={onMenuClick}
         className="lg:hidden p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors mr-auto"
@@ -104,7 +103,6 @@ function Header({ onMenuClick, dateRange }: HeaderProps) {
         </svg>
       </button>
 
-      {/* Date Range Display */}
       {dateRange && (
         <div className="hidden md:flex items-center gap-2 text-sm text-gray-600 mr-4">
           <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +114,6 @@ function Header({ onMenuClick, dateRange }: HeaderProps) {
         </div>
       )}
 
-      {/* Search Bar */}
       {searchOpen && (
         <div ref={searchRef} className="absolute left-4 right-4 lg:left-auto lg:right-auto lg:w-96 top-full mt-2 bg-white rounded-lg shadow-lg border border-gray-200 p-4 z-50">
           <div className="relative">
@@ -137,9 +134,7 @@ function Header({ onMenuClick, dateRange }: HeaderProps) {
         </div>
       )}
 
-      {/* Right Side Icons */}
       <div className="flex items-center gap-2 lg:gap-3">
-        {/* Search Icon */}
         <button 
           onClick={() => setSearchOpen(!searchOpen)}
           className="p-2 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"

@@ -9,7 +9,6 @@ interface SidebarProps {
 function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation()
   
-  // Get current user role directly - this ensures fresh data on every render
   const currentUser = authService.getCurrentUser()
   const userRole = currentUser?.role ? currentUser.role.toLowerCase().trim() : null
   

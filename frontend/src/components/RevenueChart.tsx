@@ -1,5 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Chart } from 'react-google-charts'
+import { incomeTransactionService } from '../services/incomeTransactionService'
+import { expenseService } from '../services/expenseService'
+import { toast } from 'react-toastify'
 
 interface RevenueChartProps {
   dateRange: {
@@ -13,45 +16,114 @@ interface RevenueChartProps {
 
 type ChartData = (string | number)[][]
 
+interface DailyData {
+  income: number
+  outcome: number
+  clearRevenue: number
+}
+
 function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }: RevenueChartProps) {
   const [fromDate, setFromDate] = useState(dateRange.from)
   const [toDate, setToDate] = useState(dateRange.to)
+  const [chartData, setChartData] = useState<ChartData>([['Date', 'Income', 'Outcome', 'Clear Revenue']])
+  const [loading, setLoading] = useState(false)
 
-  const generateMockData = (): ChartData => {
-    const data: ChartData = [['Date', 'Income', 'Outcome', 'Clear Revenue']]
-    
-    const startDate = new Date(dateRange.from)
-    const endDate = new Date(dateRange.to)
-    
-    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
-      const income = Math.floor(Math.random() * 5000) + 2000
-      const outcome = Math.floor(Math.random() * 3000) + 1000
-      const clearRevenue = income - outcome
+  const fetchAndProcessData = useCallback(async () => {
+    try {
+      setLoading(true)
       
-      data.push([dateStr, income, outcome, clearRevenue])
+      const [incomeTransactions, expenses] = await Promise.all([
+        shopId 
+          ? incomeTransactionService.getIncomeTransactionsByShopId(shopId)
+          : incomeTransactionService.getAllIncomeTransactions(),
+        shopId
+          ? expenseService.getExpensesByShopId(shopId)
+          : expenseService.getAllExpenses()
+      ])
+
+      const startDate = new Date(dateRange.from)
+      const endDate = new Date(dateRange.to)
+      
+      startDate.setHours(0, 0, 0, 0)
+      endDate.setHours(23, 59, 59, 999)
+
+      const filteredIncome = incomeTransactions.filter(transaction => {
+        const transactionDate = new Date(transaction.transaction_date)
+        return transactionDate >= startDate && transactionDate <= endDate
+      })
+
+      const filteredExpenses = expenses.filter(expense => {
+        const expenseDate = new Date(expense.expense_date)
+        return expenseDate >= startDate && expenseDate <= endDate
+      })
+
+      const dailyDataMap = new Map<string, DailyData>()
+
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateKey = d.toISOString().split('T')[0]
+        dailyDataMap.set(dateKey, { income: 0, outcome: 0, clearRevenue: 0 })
+      }
+
+      filteredIncome.forEach(transaction => {
+        const dateKey = transaction.transaction_date.split('T')[0]
+        const existing = dailyDataMap.get(dateKey) || { income: 0, outcome: 0, clearRevenue: 0 }
+        existing.income += parseFloat(transaction.amount.toString())
+        dailyDataMap.set(dateKey, existing)
+      })
+
+      filteredExpenses.forEach(expense => {
+        const dateKey = expense.expense_date.split('T')[0]
+        const existing = dailyDataMap.get(dateKey) || { income: 0, outcome: 0, clearRevenue: 0 }
+        existing.outcome += parseFloat(expense.amount.toString())
+        dailyDataMap.set(dateKey, existing)
+      })
+
+      const data: ChartData = [['Date', 'Income', 'Outcome', 'Clear Revenue']]
+      
+      const sortedDates = Array.from(dailyDataMap.keys()).sort()
+      
+      sortedDates.forEach(dateKey => {
+        const daily = dailyDataMap.get(dateKey)!
+        daily.clearRevenue = daily.income - daily.outcome
+        
+        const date = new Date(dateKey)
+        const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        
+        data.push([dateStr, daily.income, daily.outcome, daily.clearRevenue])
+      })
+
+      setChartData(data)
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load chart data'
+      toast.error(errorMessage)
+      setChartData([['Date', 'Income', 'Outcome', 'Clear Revenue']])
+    } finally {
+      setLoading(false)
     }
-    
-    return data
-  }
+  }, [dateRange, shopId])
+
+  useEffect(() => {
+    fetchAndProcessData()
+  }, [fetchAndProcessData])
 
   const handleFilter = () => {
     onDateRangeChange({ from: fromDate, to: toDate })
   }
 
-  const chartData = generateMockData()
-
   const chartOptions = {
-    title: shopName ? `${shopName} - Revenue Analysis` : 'Shop Revenue Analysis',
+    title: shopName ? `${shopName} - Revenue Analysis` : 'All Shops - Revenue Analysis',
     curveType: 'function' as const,
     legend: { position: 'bottom' as const },
     hAxis: {
       title: 'Date',
       slantedText: true,
-      slantedTextAngle: 45
+      slantedTextAngle: 45,
+      showTextEvery: Math.max(1, Math.floor((chartData.length - 1) / 15))
     },
     vAxis: {
-      title: 'Amount (₪)'
+      title: 'Amount ($)',
+      format: 'currency',
+      currency: 'USD'
     },
     series: {
       0: { color: '#ef4444', lineWidth: 3 },
@@ -61,7 +133,17 @@ function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }: Revenu
     chartArea: {
       width: '85%',
       height: '70%'
-    }
+    },
+    tooltip: {
+      isHtml: true,
+      trigger: 'focus',
+      textStyle: {
+        fontSize: 12
+      }
+    },
+    focusTarget: 'category',
+    pointSize: 0,
+    enableInteractivity: true
   }
 
   return (
@@ -100,13 +182,23 @@ function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }: Revenu
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <Chart
-          chartType="LineChart"
-          width="100%"
-          height="500px"
-          data={chartData}
-          options={chartOptions}
-        />
+        {loading ? (
+          <div className="flex items-center justify-center h-[500px]">
+            <div className="text-gray-500">Loading chart data...</div>
+          </div>
+        ) : chartData.length === 1 ? (
+          <div className="flex items-center justify-center h-[500px]">
+            <div className="text-gray-500">No data available for the selected date range</div>
+          </div>
+        ) : (
+          <Chart
+            chartType="LineChart"
+            width="100%"
+            height="500px"
+            data={chartData}
+            options={chartOptions}
+          />
+        )}
       </div>
     </div>
   )

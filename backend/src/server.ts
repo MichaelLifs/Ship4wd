@@ -2,8 +2,11 @@ import express, { Express } from "express";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import swaggerUi from "swagger-ui-express";
 import apiRoutes from "./routes/index.js";
 import healthRoutes from "./routes/healthRoutes.js";
+import { initializeDatabase } from "./utils/dbSetup.js";
+import { swaggerSpec } from "./config/swagger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -29,7 +32,23 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// Swagger documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "Ship4WD API Documentation"
+}));
+
 app.use("/health", healthRoutes);
 app.use("/api", apiRoutes);
 
-app.listen(PORT, () => {});
+async function startServer() {
+  try {
+    await initializeDatabase(true);
+    app.listen(PORT, () => {});
+  } catch (error) {
+    process.exit(1);
+  }
+}
+
+startServer();

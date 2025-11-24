@@ -5,11 +5,13 @@ Full-stack application with React frontend and Node.js backend for managing groc
 ## 🚀 Quick Start
 
 1. **Install all dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Setup database connection:**
+
    - Go to `backend` folder
    - Copy `.env.example` to `.env` (remove EXAMPLE)
    - Edit `.env` and add your database connection details
@@ -30,6 +32,7 @@ Management system for grocery shops with role-based access control (Admin, Shop 
 
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:4000
+- **Swagger API Documentation**: http://localhost:4000/api-docs
 
 ## 🛠️ Tech Stack
 
@@ -55,7 +58,7 @@ graph TB
         Repositories[Repositories]
         Models[Models]
         Queries[SQL Queries]
-        
+
         Routes --> Controllers
         Controllers --> Services_Backend
         Services_Backend --> Repositories
