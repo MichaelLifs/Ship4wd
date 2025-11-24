@@ -1,0 +1,5 @@
+SELECT id, shop_id, amount, expense_date, deleted, created_at, updated_at
+FROM expenses
+WHERE shop_id = $1 AND deleted = false
+ORDER BY expense_date DESC, id DESC;
+

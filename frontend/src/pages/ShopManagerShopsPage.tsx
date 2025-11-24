@@ -4,6 +4,7 @@ import Sidebar from '../components/Sidebar'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import { shopService } from '../services/shopService'
+import { expenseService } from '../services/expenseService'
 import { authService } from '../services/authService'
 import { toast } from 'react-toastify'
 
@@ -19,7 +20,7 @@ interface Shop {
   updated_at: string;
 }
 
-const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: () => void; shop: Shop | null }) => {
+const ExpenseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: () => void; shop: Shop | null }) => {
   const [date, setDate] = useState('')
   const [amount, setAmount] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -47,14 +48,25 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
       return
     }
 
+    if (!shop) {
+      setError('Shop information is missing')
+      return
+    }
+
     try {
       setIsSubmitting(true)
       setError('')
       
-      toast.success(`Purchase created successfully! Date: ${date}, Amount: $${amount}`)
+      await expenseService.createExpense({
+        shop_id: shop.id,
+        amount: parseFloat(amount),
+        expense_date: date
+      })
+      
+      toast.success(`Expense created successfully! Date: ${date}, Amount: $${parseFloat(amount).toFixed(2)}`)
       onClose()
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create purchase'
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create expense'
       setError(errorMessage)
       toast.error(errorMessage)
     } finally {
@@ -75,7 +87,7 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">New Purchase</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Add Expense</h2>
             <button
               type="button"
               onClick={onClose}
@@ -99,11 +111,11 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="purchase-date" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="expense-date" className="block text-sm font-medium text-gray-700 mb-1">
                 Date <span className="text-red-500">*</span>
               </label>
               <input
-                id="purchase-date"
+                id="expense-date"
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -113,11 +125,11 @@ const PurchaseDialog = ({ isOpen, onClose, shop }: { isOpen: boolean; onClose: (
             </div>
 
             <div>
-              <label htmlFor="purchase-amount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="expense-amount" className="block text-sm font-medium text-gray-700 mb-1">
                 Amount ($) <span className="text-red-500">*</span>
               </label>
               <input
-                id="purchase-amount"
+                id="expense-amount"
                 type="number"
                 step="0.01"
                 min="0"
@@ -169,7 +181,7 @@ function ShopManagerShopsPage() {
   const [shops, setShops] = useState<Shop[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false)
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false)
   const [selectedShop, setSelectedShop] = useState<Shop | null>(null)
 
   useEffect(() => {
@@ -198,7 +210,7 @@ function ShopManagerShopsPage() {
 
   const handleShopClick = (shop: Shop) => {
     setSelectedShop(shop)
-    setIsPurchaseDialogOpen(true)
+    setIsExpenseDialogOpen(true)
   }
 
   return (
@@ -289,7 +301,7 @@ function ShopManagerShopsPage() {
                   
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Add Purchase
+                      Add Expense
                     </span>
                   </div>
                 </div>
@@ -301,10 +313,10 @@ function ShopManagerShopsPage() {
         <Footer />
       </div>
 
-      <PurchaseDialog
-        isOpen={isPurchaseDialogOpen}
+      <ExpenseDialog
+        isOpen={isExpenseDialogOpen}
         onClose={() => {
-          setIsPurchaseDialogOpen(false)
+          setIsExpenseDialogOpen(false)
           setSelectedShop(null)
         }}
         shop={selectedShop}

@@ -1,0 +1,5 @@
+UPDATE expenses 
+SET {FIELDS}
+WHERE id = {ID_PARAM} AND deleted = false 
+RETURNING id, shop_id, amount, expense_date, deleted, created_at, updated_at;
+

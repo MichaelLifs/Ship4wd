@@ -1,0 +1,4 @@
+INSERT INTO expenses (shop_id, amount, expense_date) 
+VALUES ($1, $2, $3) 
+RETURNING id, shop_id, amount, expense_date, deleted, created_at, updated_at;
+
