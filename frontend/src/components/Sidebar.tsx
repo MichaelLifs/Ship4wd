@@ -191,3 +191,4 @@ function Sidebar({ isOpen, onClose }: SidebarProps) {
 
 export default Sidebar
 
+1

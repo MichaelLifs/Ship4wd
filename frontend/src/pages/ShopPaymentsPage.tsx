@@ -478,6 +478,7 @@ const DeleteExpenseDialog = ({ isOpen, onClose, onSuccess, expense }: DialogProp
 function ShopPaymentsPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [rowData, setRowData] = useState<ShopExpense[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -500,6 +501,7 @@ function ShopPaymentsPage() {
 
   const fetchExpenses = async () => {
     try {
+      setLoading(true)
       setError(null)
       
       // Fetch all expenses
@@ -539,6 +541,8 @@ function ShopPaymentsPage() {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load shop expenses'
       setError(errorMessage)
       toast.error(errorMessage)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -642,6 +646,10 @@ function ShopPaymentsPage() {
     flex: 1,
     minWidth: 100
   }), [])
+
+  if (loading) {
+    return null
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

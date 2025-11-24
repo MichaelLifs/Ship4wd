@@ -890,6 +890,10 @@ function UsersPage() {
     minWidth: 100
   }), [])
 
+  if (loading) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -915,11 +919,7 @@ function UsersPage() {
           </div>
           
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-gray-500">Loading users...</div>
-              </div>
-            ) : error ? (
+            {error ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="text-red-600 mb-4">{error}</div>
                 <button

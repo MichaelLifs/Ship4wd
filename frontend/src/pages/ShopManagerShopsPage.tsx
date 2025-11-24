@@ -213,6 +213,10 @@ function ShopManagerShopsPage() {
     setIsExpenseDialogOpen(true)
   }
 
+  if (loading) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -228,13 +232,7 @@ function ShopManagerShopsPage() {
             </p>
           </div>
           
-          {loading ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-center py-12">
-                <div className="text-gray-500">Loading shops...</div>
-              </div>
-            </div>
-          ) : error ? (
+          {error ? (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <div className="flex flex-col items-center justify-center py-12">
                 <div className="text-red-600 mb-4">{error}</div>

@@ -182,11 +182,7 @@ function RevenueChart({ dateRange, onDateRangeChange, shopId, shopName }: Revenu
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        {loading ? (
-          <div className="flex items-center justify-center h-[500px]">
-            <div className="text-gray-500">Loading chart data...</div>
-          </div>
-        ) : chartData.length === 1 ? (
+        {loading ? null : chartData.length === 1 ? (
           <div className="flex items-center justify-center h-[500px]">
             <div className="text-gray-500">No data available for the selected date range</div>
           </div>
