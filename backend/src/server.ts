@@ -34,10 +34,14 @@ app.use((req, res, next) => {
 app.use(express.json());
 
 // Swagger documentation
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: "Ship4WD API Documentation"
-}));
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec, {
+    customCss: ".swagger-ui .topbar { display: none }",
+    customSiteTitle: "Ship4WD API Documentation",
+  })
+);
 
 app.use("/health", healthRoutes);
 app.use("/api", apiRoutes);

@@ -9,6 +9,7 @@ import ShopManagerShopsPage from '../pages/ShopManagerShopsPage'
 import CustomerPaymentsPage from '../pages/CustomerPaymentsPage'
 import ShopPaymentsPage from '../pages/ShopPaymentsPage'
 import SettingsPage from '../pages/SettingsPage'
+import OperatingInstructionsPage from '../pages/OperatingInstructionsPage'
 
 function App(): JSX.Element {
   return (
@@ -24,6 +25,7 @@ function App(): JSX.Element {
         <Route path="/customer-payments" element={<CustomerPaymentsPage />} />
         <Route path="/shop-payments" element={<ShopPaymentsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/operating-instructions" element={<OperatingInstructionsPage />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
