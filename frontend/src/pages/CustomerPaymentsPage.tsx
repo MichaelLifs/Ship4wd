@@ -312,22 +312,12 @@ const EditPaymentDialog = ({ isOpen, onClose, onSuccess, payment }: DialogProps)
               <select
                 id="edit-shop_id"
                 {...register('shop_id', { required: 'Shop is required' })}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-                  errors.shop_id
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-gray-300 focus:ring-green-500'
-                }`}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 bg-gray-100 cursor-not-allowed"
               >
-                <option value="">Select a shop</option>
-                {allShops.map((shop) => (
-                  <option key={shop.id} value={shop.id}>
-                    {shop.shop_name}
-                  </option>
-                ))}
+                <option value={payment.shop_id}>{payment.shop_name || `Shop #${payment.shop_id}`}</option>
               </select>
-              {errors.shop_id && (
-                <p className="mt-1 text-xs text-red-600">{errors.shop_id.message as string}</p>
-              )}
+              <p className="mt-1 text-xs text-gray-500">Shop cannot be changed</p>
             </div>
 
             <div>
